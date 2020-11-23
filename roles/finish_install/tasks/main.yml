@@ -1,0 +1,24 @@
+ - name: Wait until the bootstrap VM finishes its restart after being built
+   wait_for:
+     port: 22
+     host: "{{ bootstrap_vm.ipaddr }}"
+     search_regex: OpenSSH
+     delay: 10
+     timeout: 3600
+   register: result_wait
+
+ - name: Wait for bootstrap to complete
+   command: openshift-install --dir="{{ playbook_dir }}"/install-dir wait-for bootstrap-complete --log-level debug # noqa 301
+   register: result_bootstrap
+
+ - name: Delete Bootstrap
+   command: "govc vm.destroy {{ infraID.stdout }}-{{ bootstrap_vm.name }}"  # noqa 301
+   when: result_bootstrap.rc == 0
+
+ - name: Wait for install complete
+   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
+   register: result_complete
+
+ - name: Output results from openshift-install wait-for install-complete
+   debug:
+     msg: "{{ result_complete.stderr | regex_findall('level=info.*') | list }}"

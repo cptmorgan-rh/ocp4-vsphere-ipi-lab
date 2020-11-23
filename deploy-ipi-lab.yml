@@ -1,0 +1,52 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Set the cache of all the download links
+      import_role:
+        name: cache
+
+- hosts: localhost
+  gather_facts: True
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Run all the common tasks
+      import_role:
+        name: common
+
+- hosts: localhost
+  gather_facts: False
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ datacenter }}"
+    GOVC_INSECURE: 1
+  tasks:
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+
+    - name: Run the deploy_ova to deploy the RHCOS OVA
+      import_role:
+        name: deploy_ova
+
+    - name: Run the coredns role to deploy the CoreDNS server
+      import_role:
+        name: coredns
+      when: skip_dns is not defined
+
+    - name: Configure /etc/resolv.conf with CoreDNS IP
+      import_role:
+        name: local_dns
+      when: config_local_dns is defined
+
+    - name: Run steps specific to DHCP and the use of an OVA file
+      import_role:
+        name: static_ips_ova
+
+    - name: Run steps to finish cluster installation
+      import_role:
+        name: finish_install

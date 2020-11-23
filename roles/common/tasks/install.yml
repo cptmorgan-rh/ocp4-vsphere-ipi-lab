@@ -1,0 +1,28 @@
+    - name: Generate the ignition manifests
+      command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
+
+    - name: Get Cluster infraID
+      command: jq -r '."*installconfig.ClusterID".InfraID' "{{ playbook_dir }}"/install-dir/.openshift_install_state.json # noqa 301
+      register: infraID
+
+    - name: Copy Worker MachineSet Template
+      template:
+        src: worker-machineset.yaml.j2
+        dest: "{{ playbook_dir }}/install-dir/{{ config.cluster_name }}/99_openshift-cluster-api_worker-machineset-0.yaml"
+        mode: 0644
+
+    - name: Generate the ignition configs
+      command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
+
+    - name: Set the vcenter.infraID fact
+      set_fact:
+        vcenter_folder: "{{ infraID.stdout }}"
+
+    - name: Set the vcenter.folder_absolute_path if not provided
+      set_fact:
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
+
+    - name: Display the absolute folder path of the vCenter folder
+      debug:
+        var: vcenter.folder_absolute_path
+        verbosity: 1

@@ -1,0 +1,38 @@
+config:
+  provider: vsphere
+  base_domain: example.com
+  cluster_name: ocp4
+  cluster_domain: ocp4.example.com
+  installer_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  pull_secret: "{{ lookup('file', '~/pull-secret.json') }}"
+  apiIP: 10.0.0.20
+  ingressIP: 10.0.0.21
+vcenter:
+  ip: 10.0.0.10
+  datastore: raid0
+  network: 10.0.0.x-24
+  admin_username: administrator@vsphere.local
+  admin_password: Password1!
+  datacenter: DC1
+  cluster: LAB-Cluster
+  vm_power_state: poweredon
+download:
+  channel: stable
+  version: 4.6
+  govc: https://github.com/vmware/govmomi/releases/download/v0.23.0/govc_linux_amd64.gz
+  fcct: https://github.com/coreos/fcct/releases/download/v0.7.0/fcct-x86_64-unknown-linux-gnu
+coredns_vm:
+  name: coredns
+  ipaddr: 10.0.0.30
+  upstream_dns: 8.8.8.8
+bootstrap_vm:
+  name: bootstrap
+  ipaddr: 10.0.0.30
+master_vms:
+  - { name: "master-0", ipaddr: "10.0.0.31" }
+  - { name: "master-1", ipaddr: "10.0.0.32" }
+  - { name: "master-2", ipaddr: "10.0.0.33" }
+static_ip:
+  gateway: 10.0.0.1
+  netmask: 255.255.255.0
+  network_interface_name: ens192

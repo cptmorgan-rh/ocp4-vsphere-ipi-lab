@@ -1,0 +1,88 @@
+- hosts: localhost
+  gather_facts: False
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ vcenter.datacenter }}"
+    GOVC_INSECURE: 1
+
+  tasks:
+
+    - name: stat /etc/resolv.conf.backup-ipi
+      stat:
+        path: /etc/resolv.conf.backup-ipi
+      register: resolv_conf_backup
+      when: config_local_dns is defined
+
+    - name: Get service_facts
+      service_facts:
+      when: config_local_dns is defined
+
+    - name: Restore backup of /etc/resolv.conf
+      copy:
+        src: /etc/resolv.conf.backup-ipi
+        dest: /etc/resolv.conf
+        mode: '0644'
+      when:
+        - config_local_dns is defined
+        - resolv_conf_backup.stat.exists
+        - ansible_facts.services["systemd-resolved.service"].state != "running"
+
+    - name: stat {{ config.cluster_domain }}.conf
+      stat:
+        path: "/etc/systemd/resolved.conf.d/{{ config.cluster_domain }}.conf"
+      register: resolved_conf
+      when: config_local_dns is defined
+
+    - name: Delete resolved conf file
+      file:
+        path: "/etc/systemd/resolved.conf.d/{{ config.cluster_domain }}.conf"
+        state: absent
+      become: yes
+      when:
+        - config_local_dns is defined
+        - resolved_conf.stat.exists
+        - ansible_facts.services["systemd-resolved.service"].state == "running"
+
+    - name: Restart systemd-resolved service
+      service:
+        name: systemd-resolved
+        state: restarted
+      become: yes
+      when:
+        - config_local_dns is defined
+        - ansible_facts.services["systemd-resolved.service"].state == "running"
+
+    - name: Set the datacenter variable
+      set_fact:
+        datacenter: "{{ vcenter.datacenter }}"
+
+    - name: Get Cluster infraID
+      command: jq -r .infraID "{{ playbook_dir }}/install-dir/metadata.json"  # noqa 301
+      register: infraID
+
+    - name: Set the vcenter.infraID fact
+      set_fact:
+        vcenter_folder: "{{ infraID.stdout }}"
+
+    - name: Delete Bootstrap
+      command: "govc vm.destroy {{ infraID.stdout }}-{{ bootstrap_vm.name }}"  # noqa 301
+      when: bootstrap is defined
+
+    - name: Delete Cluster
+      shell: "{{ playbook_dir }}/bin/govc find -type m | grep {{ infraID.stdout }} | cut -d/ -f4 | xargs {{ playbook_dir }}/bin/govc vm.destroy"  # noqa 301 306
+      when: cluster is defined
+
+    - name: Delete VM Folder
+      command: "{{ playbook_dir }}/bin/govc object.destroy {{ vcenter.folder_absolute_path }}"  # noqa 301
+      when: cluster is defined
+
+    - name: Delete VM Tag
+      command: "{{ playbook_dir }}/bin/govc tags.rm {{ infraID.stdout }}"  # noqa 301
+      when: cluster is defined
+
+    - name: Delete VM Tag Category
+      command: "{{ playbook_dir }}/bin/govc tags.category.rm {{ infraID.stdout }}"  # noqa 301
+      when: cluster is defined

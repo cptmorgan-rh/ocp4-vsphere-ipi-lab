@@ -1,0 +1,32 @@
+apiVersion: v1
+baseDomain: {{ config.base_domain }}
+compute:
+- hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  platform:
+    vsphere:
+      corePerSocket: 1
+      cpus: 4
+      memoryMB: 16384
+      osDisk:
+        diskSizeGB: 120
+  replicas: 3
+metadata:
+  name: {{ config.cluster_name }}
+platform:
+  vsphere:
+    apiVIP: {{ config.apiIP }}
+    ingressVIP: {{ config.ingressIP }}
+    vcenter: {{ vcenter.ip }}
+    username: {{ vcenter.admin_username }}
+    password: {{ vcenter.admin_password }}
+    datacenter: {{ vcenter.datacenter }}
+    defaultDatastore: {{ vcenter.datastore }}
+    resourcePool: /{{ vcenter.datacenter }}/host/{{ vcenter.cluster }}/Resources
+pullSecret: '{{ config.pull_secret | to_json }}'
+sshKey: '{{ config.installer_ssh_key }}'
