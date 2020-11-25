@@ -71,6 +71,10 @@
       command: "govc vm.destroy {{ infraID.stdout }}-{{ bootstrap_vm.name }}"  # noqa 301
       when: bootstrap is defined
 
+    - name: Set the vcenter.folder_absolute_path if not provided
+      set_fact:
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
+
     - name: Delete Cluster
       shell: "{{ playbook_dir }}/bin/govc find -type m | grep {{ infraID.stdout }} | cut -d/ -f4 | xargs {{ playbook_dir }}/bin/govc vm.destroy"  # noqa 301 306
       when: cluster is defined
