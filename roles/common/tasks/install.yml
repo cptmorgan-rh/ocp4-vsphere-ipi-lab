@@ -8,7 +8,7 @@
     - name: Copy Worker MachineSet Template
       template:
         src: worker-machineset.yaml.j2
-        dest: "{{ playbook_dir }}/install-dir/{{ config.cluster_name }}/99_openshift-cluster-api_worker-machineset-0.yaml"
+        dest: "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
         mode: 0644
 
     - name: Generate the ignition configs
