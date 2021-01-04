@@ -26,7 +26,7 @@
 
   - name: Set clients_url fact when specific_version is not defined.
     set_fact:
-      rhcos_url: "https://mirror.openshift.com/openshift-v4/x86_64/dependencies/rhcos/{{ download.version }}/latest"
+      rhcos_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ download.version }}/latest"
     when:
       - specific_version is not defined
 
