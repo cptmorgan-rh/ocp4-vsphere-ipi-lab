@@ -76,7 +76,7 @@
         vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
 
     - name: Delete Cluster
-      shell: "{{ playbook_dir }}/bin/govc find -type m | grep {{ infraID.stdout }} | cut -d/ -f4 | xargs {{ playbook_dir }}/bin/govc vm.destroy"  # noqa 301 306
+      shell: "{{ playbook_dir }}/bin/govc find {{ vcenter.folder_absolute_path | quote }} -type m | awk -F/ '{ print $NF }' | xargs {{ playbook_dir }}/bin/govc vm.destroy"  # noqa 301 306
       when: cluster is defined
 
     - name: Delete VM Folder
