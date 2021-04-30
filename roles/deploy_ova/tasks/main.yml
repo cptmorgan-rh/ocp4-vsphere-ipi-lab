@@ -3,25 +3,12 @@
       url: "{{ download.ova }}"
       dest: "{{ playbook_dir }}/downloads/{{ infraID.stdout }}-rhcos.ova"
       validate_certs: no
-    when: skip_ova is not defined
 
-  - name: Deploy the OVF template into the folder
-    vmware_deploy_ovf:
-      hostname: "{{ vcenter.ip }}"
-      username: "{{ vcenter.admin_username }}"
-      password: "{{ vcenter.admin_password }}"
-      datacenter: "{{ vcenter.datacenter }}"
-      datastore: "{{ vcenter.datastore }}"
-      folder: "{{ vcenter.folder_absolute_path }}"
-      name: '{{ infraID.stdout }}-rhcos'
-      allow_duplicates: False
-      disk_provisioning: thin
-      networks: "{u'VM Network':u'{{ vcenter.network }}'}"
-      ova: "{{ playbook_dir }}/downloads/{{ infraID.stdout }}-rhcos.ova"
-      power_on: False
-      validate_certs: False
-    when: skip_ova is not defined
+  - name: Deploy the OVA template into the folder
+    command: "govc import.ova --name={{ infraID.stdout }}-rhcos --ds={{ vcenter.datastore }} --options={{ playbook_dir }}/roles/deploy_ova/files/options.json --folder={{ vcenter.folder_absolute_path }} {{ playbook_dir }}/downloads/{{ infraID.stdout }}-rhcos.ova"
 
-  - name: Update VM options on the template
+  - name: Update VM options on "{{ vcenter.template_name }}"
     command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ infraID.stdout }}-rhcos -e=disk.EnableUUID=TRUE" # noqa 204
-    when: skip_ova is not defined
+
+  - name: Mark "{{ vcenter.template_name }}" as a template
+    command: "govc vm.markastemplate {{ vcenter.folder_absolute_path }}/{{ infraID.stdout }}-rhcos"

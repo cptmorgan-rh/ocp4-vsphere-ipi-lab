@@ -1,0 +1,8 @@
+{
+    "DiskProvisioning": "thin",
+    "MarkAsTemplate": false,
+    "PowerOn": false,
+    "InjectOvfEnv": false,
+    "WaitForIP": false,
+    "Name": null
+}

@@ -18,9 +18,9 @@ vcenter:
   vm_power_state: poweredon
 download:
   channel: stable
-  version: 4.6
-  govc: https://github.com/vmware/govmomi/releases/download/v0.23.0/govc_linux_amd64.gz
-  butane: https://github.com/coreos/butane/releases/download/v0.10.0/fcct-x86_64-unknown-linux-gnu
+  version: 4.7
+  govc: https://github.com/vmware/govmomi/releases/download/v0.25.0/govc_Linux_x86_64.tar.gz
+  butane: https://github.com/coreos/butane/releases/download/v0.11.0/butane-x86_64-unknown-linux-gnu
 coredns_vm:
   name: coredns
   ipaddr: 10.0.0.30
