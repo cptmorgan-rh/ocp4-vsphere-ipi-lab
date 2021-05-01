@@ -29,6 +29,10 @@
         - key: guestinfo.afterburn.initrd.network-kargs
           value: "ip={{ bootstrap_vm.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ infraID.stdout }}-{{ bootstrap_vm.name }}:ens192:off:{{ coredns_vm.ipaddr }}" # noqa 204
 
+  - name: Pause while Bootstrap VM Loads
+    pause:
+      minutes: 3
+
   - name: Create master VMs from ther template
     vmware_guest:
       hostname: "{{ vcenter.ip }}"
