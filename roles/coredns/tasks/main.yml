@@ -24,7 +24,7 @@
     mode: 0664
 
 - name: Create CoreDNS transpiled ignition file
-  shell: "{{ playbook_dir }}/bin/fcct -d {{ coredns_tempdir.path }} --pretty --strict < {{ coredns_tempdir.path }}/coredns.fcc > {{ coredns_tempdir.path }}/transpiled_config.ign" # noqa 301
+  shell: "{{ playbook_dir }}/bin/butane -d {{ coredns_tempdir.path }} --pretty --strict < {{ coredns_tempdir.path }}/coredns.fcc > {{ coredns_tempdir.path }}/transpiled_config.ign" # noqa 301
 
 - name: Set coredns_ign Fact
   set_fact:
